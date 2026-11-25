@@ -256,6 +256,7 @@ export interface ArtifactReader {
     | "uimage"
     | "android-boot-image"
     | "android-ota-payload"
+    | "android-vbmeta"
     | "iso9660"
     | "uefi"
     | "pyinstaller"
