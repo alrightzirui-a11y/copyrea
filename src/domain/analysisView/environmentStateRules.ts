@@ -10,6 +10,10 @@ import type { StateRecordChronology } from "./StateRecordChronology.js";
 import type { ListQuery } from "./environmentStateListQuery.js";
 import { compareUnicodeCodePoints } from "../unicodeCodePointOrder.js";
 import { equalJsonValues as same, type JsonValue } from "../jsonValue.js";
+import type {
+  RpcOperation,
+  RpcOperationFacts,
+} from "./rpcOperationSelector.js";
 import type { StateWritePlan } from "./environmentStateWriteRules.js";
 import {
   respellClock,
@@ -45,6 +49,7 @@ export interface StateToolFacts {
   readonly method: string;
   readonly path_template: string;
   readonly record_ordinals: readonly number[];
+  readonly rpc_operation?: RpcOperation;
 }
 
 /** A record's response body as JSON, or unusable when absent, cut, not JSON, not exactly representable. */
@@ -68,6 +73,8 @@ export interface StateBudget {
   ) => T | null;
   /** Whether a record's response had no body. */
   readonly emptyResponse: (ordinal: number) => boolean;
+  /** Extracted RPC operation facts for one recorded exchange (`null` when inspected with no match). */
+  readonly rpcOperation?: (ordinal: number) => RpcOperationFacts | null;
   readonly retain: (bytes: number) => boolean;
   /** Mark the retained bytes; the returned call releases what was retained since, once none of it is held. */
   readonly checkpoint: () => () => void;
