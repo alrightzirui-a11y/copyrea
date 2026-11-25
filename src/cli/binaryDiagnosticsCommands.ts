@@ -519,4 +519,34 @@ export const registerBinaryDiagnosticsCommands = (
         : projectAnalysisError(result.error);
     },
   );
+  registerContractCommand(
+    cli,
+    logger,
+    contract("inspect_esp_nvs"),
+    {
+      description:
+        "Decode an ESP-IDF v1/v2 Non-Volatile Storage (NVS) partition or flash slice without executing it",
+      positionals: ["path"],
+      callerPaths: ["path"],
+      evidenceDelivery: true,
+      fields: {
+        path: { description: "Local NVS partition image or ESP flash dump" },
+        partition_offset: {
+          description: "4096-byte aligned NVS start offset inside path",
+        },
+        partition_bytes: {
+          description: "Optional 4096-byte multiple NVS slice length",
+        },
+        max_entries: { description: "Maximum NVS entries returned inline" },
+        max_file_bytes: { description: "Maximum input file size in bytes" },
+      },
+    },
+    deliverWithService(
+      async () =>
+        (
+          await import("../composition/binaryDiagnostics/espNvs.js")
+        ).createEspNvsService(),
+      "rea-esp-nvs",
+    ),
+  );
 };
