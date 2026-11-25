@@ -274,6 +274,7 @@ import { nativeProcedureReferencesSummaryViewResultSchema } from "./summarySchem
 import { nativeValueTraceSummaryViewResultSchema } from "./summarySchemas/nativeValueTraceSummarySchema.js";
 import { nugetNupkgSummaryViewResultSchema } from "./summarySchemas/nugetNupkgSummarySchema.js";
 import { objdumpSummaryViewResultSchema } from "./summarySchemas/objdumpSummarySchema.js";
+import { ociImageLayoutSummaryViewResultSchema } from "./summarySchemas/ociImageLayoutSummarySchema.js";
 import { pcapCaptureSummaryViewResultSchema } from "./summarySchemas/pcapCaptureSummarySchema.js";
 import {
   playwrightTracePageViewResultSchema,
@@ -363,6 +364,7 @@ export {
   nativeValueTraceSummaryViewResultSchema,
   nugetNupkgSummaryViewResultSchema,
   objdumpSummaryViewResultSchema,
+  ociImageLayoutSummaryViewResultSchema,
   pcapCaptureSummaryViewResultSchema,
   playwrightTracePageViewResultSchema,
   playwrightTraceSummaryViewResultSchema,
@@ -394,6 +396,7 @@ const viewResultBase = {
     "trace_web_source_location",
     "inspect_python_pyc",
     "inspect_nuget_nupkg",
+    "inspect_oci_image_layout",
     "inspect_erlang_beam",
     "inspect_devicetree",
     "inspect_byte_entropy",
@@ -790,6 +793,7 @@ export const analysisViewResultSchema = z.discriminatedUnion("kind", [
     webBundleSummaryViewResultSchema,
     webPageSummaryViewResultSchema,
     nugetNupkgSummaryViewResultSchema,
+    ociImageLayoutSummaryViewResultSchema,
   ]),
   z.strictObject({
     ...viewResultBase,
