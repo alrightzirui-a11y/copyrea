@@ -191,6 +191,30 @@ const PATH_SCOPES = {
     "tests/boundary/process/processCaptureLifecycle.test.ts",
     "tests/boundary/process/processCli.test.ts",
     "tests/boundary/mcp/sessionMcp.test.ts",
+    "tests/acceptance/appBundleBackslashCli.test.ts",
+    "tests/acceptance/applications/appBundleEncodingCli.test.ts",
+    "tests/acceptance/applications/assetCatalogResourceKeys.test.ts",
+    "tests/acceptance/applications/nativePlistBinaryScalars.test.ts",
+    "tests/acceptance/applications/nativePlistNesting.test.ts",
+    "tests/acceptance/applications/resourceOnlyPlistSelection.test.ts",
+    "tests/acceptance/darwinAvailabilityMcp.test.ts",
+    "tests/acceptance/machoSelectedSliceCli.test.ts",
+    "tests/acceptance/nativeDispatchFallbackFailure.test.ts",
+    "tests/acceptance/nativeDispatchSnapshot.test.ts",
+    "tests/acceptance/nativeMachoParenthesizedCli.test.ts",
+    "tests/boundary/cli/artifactArmSlicesCli.test.ts",
+    "tests/boundary/cli/nativeDispatchInputBudget.test.ts",
+    "tests/boundary/cli/nativeDispatchRecordBudget.test.ts",
+    "tests/boundary/cli/nativeMachoDylibIdentityCli.test.ts",
+    "tests/boundary/cli/nativeMachoEchoedPathCli.test.ts",
+    "tests/boundary/cli/nativeMachoEvidenceDeliveryCli.test.ts",
+    "tests/boundary/cli/nativeMachoLinkerOptionsCli.test.ts",
+    "tests/boundary/cli/nativeMachoObjectSegmentCli.test.ts",
+    "tests/boundary/cli/nativeSignatureCallerSelection.test.ts",
+    "tests/boundary/cli/rawDiskImageCli.test.ts",
+    "tests/boundary/mcp/artifactArmSlicesMcp.test.ts",
+    "tests/boundary/mcp/nativeDispatchBoundTarget.test.ts",
+    "tests/boundary/mcp/nativePlistDiagnosticsMcp.test.ts",
   ],
   // Four-host installed-package matrix and the Windows curated lane.
   package: [
@@ -854,3 +878,42 @@ export const MANUAL_VERIFIERS = [
   "scripts/lib/ghidra-*-snapshot-e2e.mjs",
   "scripts/lib/real-ghidra-snapshot-lifecycle.mjs",
 ];
+
+// Test files with darwin-only cases that no macOS job runs, each with the
+// reason. darwinTestLanes.test.ts requires every other such file to be named by
+// a macOS workflow job.
+const PARTLY_GATED =
+  "Only some cases are darwin-gated and the rest run on Linux; the macOS cases stay manual until their runner minutes are agreed (#13335).";
+const FAILS_ON_MACOS =
+  "A darwin-only case fails on macOS 26.6 arm64 with Command Line Tools; triage it before adding the file to apple-artifacts (#13335).";
+export const DARWIN_MANUAL_TESTS = {
+  "src/application/Doctor.test.ts": PARTLY_GATED,
+  "src/artifacts/MachOSliceArtifactReader.test.ts": PARTLY_GATED,
+  "src/ghidra/GhidraInstallation.test.ts": PARTLY_GATED,
+  "src/native/MachoCommandNames.test.ts": PARTLY_GATED,
+  "src/process/systemPs.test.ts": PARTLY_GATED,
+  "tests/acceptance/applications/bundleResourceRootCliMcp.test.ts":
+    FAILS_ON_MACOS,
+  "tests/acceptance/applications/runtime.test.ts": PARTLY_GATED,
+  "tests/boundary/cli/completions.test.ts": PARTLY_GATED,
+  "tests/boundary/cli/foreignUniversalMachoCli.test.ts": PARTLY_GATED,
+  "tests/boundary/cli/idaDoctorRegistration.test.ts": PARTLY_GATED,
+  "tests/boundary/cli/nativeMachoMissingUuidCli.test.ts": FAILS_ON_MACOS,
+  "tests/boundary/cli/nativeUiScenarioInputCli.test.ts": PARTLY_GATED,
+  "tests/boundary/cli/userConfigCli.test.ts": PARTLY_GATED,
+  "tests/boundary/filesystem/assetCatalogFinalization.test.ts": PARTLY_GATED,
+  "tests/boundary/filesystem/binaryTarget.test.ts": PARTLY_GATED,
+  "tests/boundary/filesystem/jsonOutputPathCapacity.test.ts": PARTLY_GATED,
+  "tests/boundary/filesystem/nativePascalVerifier.test.ts": PARTLY_GATED,
+  "tests/boundary/pcap/pcapCommand.test.ts": PARTLY_GATED,
+  "tests/boundary/process/darwinHelperCache.test.ts": PARTLY_GATED,
+  "tests/boundary/process/ghidraJavaProbePreparation.test.ts": PARTLY_GATED,
+  "tests/boundary/process/providerProcess.test.ts": PARTLY_GATED,
+  "tests/boundary/providers/native/artifactProvider.nativeImageProbes.test.ts":
+    PARTLY_GATED,
+  "tests/boundary/providers/native/lldbLauncherBoundary.test.ts":
+    FAILS_ON_MACOS,
+  "tests/boundary/providers/native/machoSliceReader.test.ts": PARTLY_GATED,
+  "tests/boundary/setup/macosHopperPublisherVerification.test.ts": PARTLY_GATED,
+  "tests/process-global/darwinCompilerCleanup.test.ts": PARTLY_GATED,
+};
