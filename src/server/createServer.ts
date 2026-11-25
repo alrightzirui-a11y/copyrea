@@ -249,6 +249,7 @@ export const createServer = (
       environment.REA_MCP_MAX_INPUT_ELEMENTS,
     );
   server.analysisSettings = analysisSettings;
+  server.capabilityAvailability = capabilities.availability;
   if (options.mcpServer !== undefined) {
     server.attachRuntime(
       session === undefined
