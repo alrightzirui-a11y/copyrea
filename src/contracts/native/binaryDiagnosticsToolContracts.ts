@@ -95,6 +95,10 @@ import {
   inspectWindowsShortcutInputSchema,
   windowsShortcutSchema,
 } from "../../domain/native/windowsShortcut.js";
+import {
+  espNvsReportSchema,
+  inspectEspNvsInputSchema,
+} from "../../domain/firmware/espNvs.js";
 
 /** Caller-selected delivery of completed binary layout Evidence. */
 export const inspectBinaryLayoutRequestSchema =
@@ -538,6 +542,31 @@ export const BINARY_DIAGNOSTICS_TOOL_CONTRACTS = [
         input: {
           path: "/artifacts/crash.core",
           include_debugger_context: true,
+        },
+      },
+    ],
+  },
+  {
+    name: "inspect_esp_nvs",
+    cli: true,
+    ...toolContractMetadata("inspect_esp_nvs", evidenceEffects),
+    kind: "native-provider",
+    description:
+      "Decode an ESP-IDF v1/v2 Non-Volatile Storage (NVS) flash partition or a 4096-byte aligned slice of a raw ESP flash dump without executing code or decrypting keys. Verifies page-header, item-header, and variable-payload IEEE CRC32 checksums (seeded with 0xFFFFFFFF), reconstructs namespace tables, primitive integers (u8..u64, i8..i64), UTF-8 strings (sz), v1 single-page blobs, and v2 multi-chunk BLOB_IDX/BLOB_DATA records, and flags corrupt or XTS-AES encrypted pages explicitly.",
+    inputSchema: inspectEspNvsInputSchema,
+    outputSchema: evidenceResultOf(espNvsReportSchema),
+    examples: [
+      {
+        title: "Decode a standalone carved nvs.bin partition",
+        input: { path: "/artifacts/nvs.bin" },
+      },
+      {
+        title:
+          "Decode the NVS partition at 0x9000 inside a full ESP32 flash dump",
+        input: {
+          path: "/artifacts/esp32_flash.bin",
+          partition_offset: 36864,
+          partition_bytes: 24576,
         },
       },
     ],
