@@ -60,6 +60,7 @@ override is `source: "runtime"`. The structured field is `update_mode: "runtime"
 | `javascript.max_heap_mb`                     | none (`max_heap_mb`)                             | `src/domain/javascript/javascriptAnalysisResourceControls.ts` | 1024                                      |   128 |                                  16384 | next worker           |
 | `wasm.command_timeout_ms`                    | none (`command_timeout_ms`)                      | `src/domain/wasm/wasmArtifact.ts`                             | 30000                                     |     1 |                             2147483647 | per operation         |
 | `native.matching_representation_bytes`       | `REA_NATIVE_MATCHING_REPRESENTATION_BYTES`       | `src/domain/analysisResourceLimits.ts`                        | 100663296                                 |     1 |                             1073741824 | per operation         |
+| `web.bundle_endpoint_literal_candidates`     | `REA_WEB_BUNDLE_ENDPOINT_LITERAL_CANDIDATES`     | `src/domain/analysisResourceLimits.ts`                        | 1024                                      |     1 |                                   4096 | per operation         |
 
 An out-of-range `update_analysis_settings` value is rejected by the setting's
 schema. Invalid launch seeds that the global environment parser accepts as
