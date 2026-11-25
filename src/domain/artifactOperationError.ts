@@ -121,6 +121,7 @@ export class ArtifactOperationError extends AnalysisError {
       | "inspect_elf_debug_link"
       | "inspect_elf_unwind_ranges"
       | "inspect_devicetree"
+      | "inspect_firmware_literal_pools"
       | "inspect_ntfs_journal"
       | "inspect_api_contract"
       | "inspect_playwright_trace"

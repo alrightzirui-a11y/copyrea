@@ -89,6 +89,7 @@ import { createWindowsShortcutService } from "./binaryDiagnostics/windowsShortcu
 import { createRecordedCrashService } from "./binaryDiagnostics/recordedCrash.js";
 import { createBinaryLayoutService } from "./binaryDiagnostics/binaryLayout.js";
 import { createDevicetreeService } from "./binaryDiagnostics/devicetree.js";
+import { createFirmwareLiteralPoolsService } from "./binaryDiagnostics/firmwareLiteralPools.js";
 import { createElfNotesService } from "./binaryDiagnostics/elfNotes.js";
 import { createDwarfUnitsService } from "./binaryDiagnostics/dwarfUnits.js";
 import { createElfDebugLinkService } from "./binaryDiagnostics/elfDebugLink.js";
@@ -397,6 +398,7 @@ const modules = {
   peResources: service(() => createPeResourcesService()),
   nativeExports: service(() => createNativeExportsService()),
   devicetree: service(() => createDevicetreeService()),
+  firmwareLiteralPools: service(() => createFirmwareLiteralPoolsService()),
   elfNotes: service(() => createElfNotesService()),
   dwarfUnits: service(() => createDwarfUnitsService()),
   elfDebugLink: service(() => createElfDebugLinkService()),

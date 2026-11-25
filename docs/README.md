@@ -105,6 +105,7 @@ The [REA website](https://rea.tools/) has worked examples and product pages.
 - [Firmware analysis](guides/firmware/firmware-analysis.md)
 - [Android OTA update payloads](guides/firmware/android-ota-payload.md)
 - [Flattened devicetree inspection](devicetree.md)
+- [Firmware literal-pool MMIO disassembly](guides/firmware/firmware-literal-pools.md)
 - [ESP flash images](esp-flash-image.md)
 - [ESP images](esp-image.md)
 - [U-Boot FIT images](fit-images.md)
