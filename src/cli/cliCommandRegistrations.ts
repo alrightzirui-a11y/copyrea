@@ -217,6 +217,15 @@ export const CLI_COMMAND_REGISTRATIONS = {
         context.environment,
       ),
   ),
+  harmony: plain(
+    () => import("./harmonyAbcCommands.js"),
+    (module, context) =>
+      module.registerHarmonyAbcCommands(
+        context.cli,
+        context.logger,
+        context.environment,
+      ),
+  ),
   uefi: plain(
     () => import("./uefiCommands.js"),
     (module, context) =>
@@ -490,6 +499,7 @@ const CLI_FAMILY_REGISTRATIONS: {
   ],
   managed: ["managed"],
   firmware: ["firmware"],
+  harmony: ["harmony"],
   uefi: ["uefi"],
   android: ["android"],
   pcap: ["pcap"],

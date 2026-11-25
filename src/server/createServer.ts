@@ -216,6 +216,7 @@ export const createServer = (
     artifactResources,
     reverseEngineering,
     uefiAnalysis,
+    harmonyAbc,
     firmwareAnalysis,
     gdbSessions,
     rizinDebugSessions,
@@ -487,6 +488,12 @@ export const createServer = (
     },
     firmware: () =>
       registerServiceTools(server, { firmwareAnalysis }, contractTools),
+    harmony: () =>
+      registerServiceTools(
+        server,
+        { harmonyAbcAnalysis: harmonyAbc },
+        contractTools,
+      ),
     uefi: () => registerServiceTools(server, { uefiAnalysis }, contractTools),
     android: () =>
       registerServiceTools(

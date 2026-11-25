@@ -28,6 +28,10 @@ import {
   inspectKunaProvider,
   kunaSettingAffectsProbe,
 } from "./kuna/KunaDoctor.js";
+import {
+  XPANDA_DOCTOR_SETTINGS,
+  inspectXpandaProvider,
+} from "./harmony/XpandaDoctor.js";
 import { readIdaConfiguration } from "./ida/IdaConfiguration.js";
 import { selectLinuxPrivateDisplayStrategy } from "./hopper/LinuxPrivateDisplayProbe.js";
 import { ok } from "./domain/result.js";
@@ -238,6 +242,7 @@ const PROVIDER_SETTINGS: Readonly<Record<string, readonly string[]>> = {
   ida: IDA_DOCTOR_SETTINGS,
   jadx: JADX_DOCTOR_SETTINGS,
   kuna: KUNA_DOCTOR_SETTINGS,
+  xpanda: XPANDA_DOCTOR_SETTINGS,
 };
 
 /**
@@ -305,6 +310,7 @@ const PROVIDER_CONFIGURATION_KEYS: Readonly<Record<string, string>> = {
   ida: "REA_IDA_MCP_CONFIG",
   jadx: "REA_JADX_MCP_JAR",
   kuna: "REA_KUNA_COMMAND",
+  xpanda: "REA_XPANDA_ROOT",
 };
 
 const providerConfigurationPresent = (
@@ -313,7 +319,10 @@ const providerConfigurationPresent = (
 ): boolean => {
   const key = PROVIDER_CONFIGURATION_KEYS[id];
   const value = key === undefined ? undefined : environment[key];
-  return value !== undefined && (id !== "kuna" || value.length > 0);
+  return (
+    value !== undefined &&
+    ((id !== "kuna" && id !== "xpanda") || value.length > 0)
+  );
 };
 
 const unresolvedProvider = (
@@ -657,6 +666,12 @@ export const createSystemDoctorHost = (
         inspectionEnvironment,
         platform,
       );
+      const xpandaUnresolved = unresolvedProvider(
+        "xpanda",
+        unresolved,
+        inspectionEnvironment,
+        platform,
+      );
       const inspections = await settleConcurrent([
         ghidraUnresolved !== undefined
           ? Promise.resolve(ghidraUnresolved)
@@ -703,6 +718,18 @@ export const createSystemDoctorHost = (
                 resourceScope: probeScope,
                 signal: inspectionSignal,
               }),
+            ),
+        xpandaUnresolved !== undefined
+          ? Promise.resolve(xpandaUnresolved)
+          : withProbeResourceScope(
+              resourceScope,
+              "xpanda-doctor",
+              (probeScope) =>
+                inspectXpandaProvider(inspectionEnvironment, {
+                  resourceScope: probeScope,
+                  signal: inspectionSignal,
+                  platform,
+                }),
             ),
       ]);
       return inspections.map((inspection) =>

@@ -665,6 +665,7 @@ import type {
 } from "./javascript/electronObservation.js";
 import type { AndroidPartialObservation } from "./android/androidPartialObservation.js";
 import type { UefiPartialObservation } from "./uefi/uefiFirmwareAnalysis.js";
+import type { HarmonyAbcPartialObservation } from "./harmony/harmonyAbcAnalysis.js";
 import type { FirmwarePartialObservation } from "./firmware/firmwareAnalysis.js";
 import type {
   AdbActivityStartPartialObservation,
@@ -771,6 +772,7 @@ export type AnalysisPartialObservation =
   | AndroidPartialObservation
   | FirmwarePartialObservation
   | UefiPartialObservation
+  | HarmonyAbcPartialObservation
   | NativeUiObservationResult
   | InspectSignature
   | InspectMacho
