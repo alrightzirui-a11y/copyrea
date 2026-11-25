@@ -519,4 +519,50 @@ export const registerBinaryDiagnosticsCommands = (
         : projectAnalysisError(result.error);
     },
   );
+  registerContractCommand(
+    cli,
+    logger,
+    contract("inspect_firmware_literal_pools"),
+    {
+      description:
+        "Disassemble ARM Thumb/Thumb-2/A32 or Xtensa L32R PC-relative literal-pool loads and attribute MMIO pointers without executing firmware",
+      positionals: ["path"],
+      callerPaths: ["path"],
+      evidenceDelivery: true,
+      fields: {
+        path: { description: "Local firmware binary or flash slice path" },
+        isa: {
+          description: "Instruction encoding (arm-thumb, arm-a32, or xtensa)",
+        },
+        base_address: {
+          description:
+            "Explicit 32-bit hex load base address for file offset 0",
+        },
+        scan_offset: {
+          description:
+            "Start byte offset inside path for linear instruction scan",
+        },
+        max_scan_bytes: {
+          description: "Maximum instruction byte span to scan from scan_offset",
+        },
+        max_references: {
+          description: "Maximum literal-pool load references returned inline",
+        },
+        svd_xml: {
+          description:
+            "Optional CMSIS-SVD XML document for <peripheral> base attribution",
+        },
+        max_file_bytes: {
+          description: "Maximum firmware file size in bytes",
+        },
+      },
+    },
+    deliverWithService(
+      async () =>
+        (
+          await import("../composition/binaryDiagnostics/firmwareLiteralPools.js")
+        ).createFirmwareLiteralPoolsService(),
+      "rea-firmware-literal-pools",
+    ),
+  );
 };

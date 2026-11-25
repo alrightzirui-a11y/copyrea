@@ -95,6 +95,10 @@ import {
   inspectWindowsShortcutInputSchema,
   windowsShortcutSchema,
 } from "../../domain/native/windowsShortcut.js";
+import {
+  firmwareLiteralPoolsReportSchema,
+  inspectFirmwareLiteralPoolsInputSchema,
+} from "../../domain/firmware/firmwareLiteralPools.js";
 
 /** Caller-selected delivery of completed binary layout Evidence. */
 export const inspectBinaryLayoutRequestSchema =
@@ -538,6 +542,35 @@ export const BINARY_DIAGNOSTICS_TOOL_CONTRACTS = [
         input: {
           path: "/artifacts/crash.core",
           include_debugger_context: true,
+        },
+      },
+    ],
+  },
+  {
+    name: "inspect_firmware_literal_pools",
+    cli: true,
+    ...toolContractMetadata("inspect_firmware_literal_pools", evidenceEffects),
+    kind: "native-provider",
+    description:
+      "Disassemble PC-relative literal-pool load instructions (arm-thumb 16-bit LDR Rt,[PC,#imm8*4] and 32-bit Thumb-2 LDR.W Rt,[PC,#+-imm12], arm-a32 LDR<c> Rd,[PC,#+-imm12], and xtensa 24-bit L32R with 16-bit narrow instruction framing) from raw firmware bytes at an explicit base_address without executing code. Resolves in-image 32-bit pool constants, suppresses referenced pool data words from linear instruction decoding, and attributes loaded constants to Cortex-M PPB/SCS blocks (SCB, NVIC, SysTick, MPU, DWT), Cortex-M or Espressif peripheral MMIO buses, SRAM, mapped flash, or optional CMSIS-SVD <peripheral> base addresses.",
+    inputSchema: inspectFirmwareLiteralPoolsInputSchema,
+    outputSchema: evidenceResultOf(firmwareLiteralPoolsReportSchema),
+    examples: [
+      {
+        title: "Scan Cortex-M Thumb firmware for literal-pool MMIO pointers",
+        input: {
+          path: "/artifacts/stm32_app.bin",
+          isa: "arm-thumb",
+          base_address: "0x08000000",
+        },
+      },
+      {
+        title: "Scan ESP32 Xtensa IROM slice for L32R peripheral references",
+        input: {
+          path: "/artifacts/esp32_irom.bin",
+          isa: "xtensa",
+          base_address: "0x400d0000",
+          max_scan_bytes: 262144,
         },
       },
     ],
