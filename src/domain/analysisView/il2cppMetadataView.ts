@@ -1,11 +1,9 @@
-import { selectIndexedViewRows, selectViewRows } from "./selectViewRows.js";
 import { z } from "zod";
 import {
   analysisViewInputError,
   invalidAnalysisView,
 } from "./analysisViewErrors.js";
 import type { AnalysisError } from "../analysisErrorBase.js";
-import type { JsonValue } from "../jsonValue.js";
 import { isImmutableJsonSnapshot } from "../immutableJson.js";
 import {
   il2cppMetadataImageSchema,
@@ -29,6 +27,11 @@ import {
 } from "../il2cpp/il2cppMetadata.js";
 import { err, ok, type Result } from "../result.js";
 import { createAnalysisViewResultReader } from "./analysisViewParent.js";
+import {
+  selectIndexedViewRows,
+  selectRowFields,
+  selectViewRows,
+} from "./selectViewRows.js";
 import type { AnalysisViewParent } from "./analysisViewParent.js";
 import {
   ownedView,
@@ -360,21 +363,6 @@ const parseMetadataReport = (
   return ok(checked);
 };
 
-const selectFields = (
-  row: Row,
-  index: number,
-  fields: Set<string> | undefined,
-) => {
-  const item: { index: number } & Record<string, JsonValue> = { index };
-  const values: Readonly<Record<string, JsonValue>> = row;
-  for (const key of Object.keys(values)) {
-    const value = values[key];
-    if (value !== undefined && (fields === undefined || fields.has(key)))
-      item[key] = value;
-  }
-  return item;
-};
-
 /** Compile caller selections once; large batches do not multiply per-row work. */
 const selection = (view: Request, report: Report) => {
   const names =
@@ -685,11 +673,12 @@ export const projectIl2cppMetadataView = (
         },
       ]),
     );
-  const matches = selection(view, report);
   const selectedFields =
     view.fields === undefined ? undefined : new Set<string>(view.fields);
   const project = (row: Row, index: number) =>
-    selectFields(row, index, selectedFields);
+    selectRowFields(row, index, selectedFields);
+  const matches = selection(view, report);
+  // Filters intersect with indices; the page offset counts matching rows.
   const { rows: items, total } =
     view.indices === undefined
       ? selectViewRows(rows, view, matches, project)
