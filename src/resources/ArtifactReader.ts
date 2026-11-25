@@ -260,6 +260,7 @@ export interface ArtifactReader {
     | "uimage"
     | "android-boot-image"
     | "android-ota-payload"
+    | "ubi-image"
     | "iso9660"
     | "uefi"
     | "pyinstaller"
