@@ -7,5 +7,5 @@ export const PACKAGE_METADATA = {
   clientSdkVersion: "2.4.0",
   coreSdkVersion: "2.4.0",
   evmoleVersion: "0.9.6",
-  skillVersion: "63",
+  skillVersion: "64",
 } as const;
