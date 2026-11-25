@@ -17,8 +17,10 @@ import { fixedCeilingConstraint } from "../domain/analysisErrorCore.js";
 import { ArtifactOperationError } from "../domain/artifactOperationError.js";
 import {
   NUGET_NUPKG_FORMAT,
-  NUGET_NUPKG_LIMIT_MAXIMA,
+  NUGET_NUPKG_READ_BUDGETS,
+  nugetNupkgBudgetLimit,
   type InspectNugetNupkgInput,
+  type NugetNupkgReadBudget,
 } from "../domain/nuget/nupkg.js";
 import { err, ok } from "../domain/result.js";
 import { errorMessage } from "../kernel/errorMessage.js";
@@ -28,13 +30,25 @@ import { parseNugetNupkg } from "./NugetNupkgParser.js";
 
 const OPERATION = "inspect_nuget_nupkg";
 
-const budgetRecovery = (
-  parameter: keyof typeof NUGET_NUPKG_LIMIT_MAXIMA,
-  selected: number,
-): string =>
-  selected >= NUGET_NUPKG_LIMIT_MAXIMA[parameter]
-    ? `${parameter} is at this operation's maximum of ${String(NUGET_NUPKG_LIMIT_MAXIMA[parameter])}; select a complete artifact within that bound.`
-    : `Raise ${parameter} above ${String(selected)}, up to ${String(NUGET_NUPKG_LIMIT_MAXIMA[parameter])}, or select a smaller artifact. The budget applies on the next call; repeating the unchanged request does not raise it.`;
+const isReadBudget = (name: string): name is NugetNupkgReadBudget =>
+  Object.hasOwn(NUGET_NUPKG_READ_BUDGETS, name);
+
+/** The caller-selected budget that stopped inspection, as structured limit and prose. */
+const budgetRefusal = (
+  parameter: NugetNupkgReadBudget,
+  input: InspectNugetNupkgInput,
+) => {
+  const selected = input[parameter];
+  const { maximum } = NUGET_NUPKG_READ_BUDGETS[parameter];
+  return {
+    retryable: false as const,
+    limit: nugetNupkgBudgetLimit(parameter, selected),
+    remediationAction:
+      selected >= maximum
+        ? `${parameter} is at this operation's maximum of ${String(maximum)}; select a complete artifact within that bound.`
+        : `Raise ${parameter} above ${String(selected)}, up to ${String(maximum)}, or select a smaller artifact. The budget applies on the next call; repeating the unchanged request does not raise it.`,
+  };
+};
 
 const nupkgFailure = (
   cause: unknown,
@@ -51,28 +65,15 @@ const nupkgFailure = (
       description: "NuGet package",
       recognise: (failure, origin) => {
         if (isParseLimit(failure, NUGET_NUPKG_FORMAT)) {
-          const parameter = (
-            Object.keys(
-              NUGET_NUPKG_LIMIT_MAXIMA,
-            ) as (keyof typeof NUGET_NUPKG_LIMIT_MAXIMA)[]
-          ).find((name) => name === failure.failure.limit.name);
+          const { name } = failure.failure.limit;
           return parseLimitConstraint(
             OPERATION,
-            failure.failure.limit.name === "max_entries"
-              ? "capacity"
-              : "memory",
+            name === "max_entries" ? "capacity" : "memory",
             failure,
             {
               path: input.path,
               retryable: false,
-              ...(parameter === undefined
-                ? {}
-                : {
-                    remediationAction: budgetRecovery(
-                      parameter,
-                      failure.failure.limit.maximum,
-                    ),
-                  }),
+              ...(isReadBudget(name) ? budgetRefusal(name, input) : {}),
             },
           );
         }
@@ -112,13 +113,7 @@ const nupkgFailure = (
             { name: "max_file_bytes", maximum: input.max_file_bytes },
             { cause: failure },
           ),
-          {
-            retryable: false,
-            remediationAction: budgetRecovery(
-              "max_file_bytes",
-              input.max_file_bytes,
-            ),
-          },
+          budgetRefusal("max_file_bytes", input),
         ),
       unclassified: (failure) =>
         new ArtifactOperationError(

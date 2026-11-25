@@ -1,20 +1,57 @@
 import { z } from "zod";
+import type { AnalysisParameterLimit } from "../analysisSettings.js";
 import { digestSchema } from "../digests.js";
 import { absoluteLocalPathStringSchema } from "../localPath.js";
 const uint = z.number().int().min(0).max(0xffffffff);
 export const MAX_DEVICETREE_FILE_BYTES = 16777216;
 export const DEVICETREE_PROPERTY_PREVIEW_BYTES = 256;
-export const inspectDevicetreeInputSchema = z.strictObject({
-  path: absoluteLocalPathStringSchema,
-  max_file_bytes: z
+
+/** The per-call budgets `inspect_devicetree` accepts, shared by its schema and refusals. */
+export const DEVICETREE_READ_BUDGETS = {
+  max_file_bytes: {
+    minimum: 40,
+    maximum: MAX_DEVICETREE_FILE_BYTES,
+    default_value: 4194304,
+  },
+  max_nodes: { minimum: 1, maximum: 65536, default_value: 8192 },
+  max_properties: { minimum: 1, maximum: 262144, default_value: 32768 },
+  max_depth: { minimum: 1, maximum: 256, default_value: 64 },
+} as const;
+export type DevicetreeReadBudget = keyof typeof DEVICETREE_READ_BUDGETS;
+
+const budget = (name: DevicetreeReadBudget) => {
+  const bounds = DEVICETREE_READ_BUDGETS[name];
+  return z
     .number()
     .int()
-    .min(40)
-    .max(MAX_DEVICETREE_FILE_BYTES)
-    .default(4194304),
-  max_nodes: z.number().int().min(1).max(65536).default(8192),
-  max_properties: z.number().int().min(1).max(262144).default(32768),
-  max_depth: z.number().int().min(1).max(256).default(64),
+    .min(bounds.minimum)
+    .max(bounds.maximum)
+    .default(bounds.default_value);
+};
+
+export const inspectDevicetreeInputSchema = z.strictObject({
+  path: absoluteLocalPathStringSchema,
+  max_file_bytes: budget("max_file_bytes"),
+  max_nodes: budget("max_nodes"),
+  max_properties: budget("max_properties"),
+  max_depth: budget("max_depth"),
+});
+
+/**
+ * The per-call control that stopped devicetree inspection, named by its
+ * contract field; each adapter names the option that sets it. The schema owns
+ * the same bounds, so the reported range is the one the next call accepts.
+ */
+export const devicetreeBudgetLimit = (
+  parameter: DevicetreeReadBudget,
+  effectiveValue: number,
+): AnalysisParameterLimit => ({
+  control_kind: "parameter",
+  parameter,
+  effective_value: effectiveValue,
+  unit: parameter === "max_file_bytes" ? "bytes" : "count",
+  ...DEVICETREE_READ_BUDGETS[parameter],
+  applies_at: "next_call",
 });
 export const devicetreePropertySchema = z.strictObject({
   name: z.string(),

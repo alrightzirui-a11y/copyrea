@@ -11,6 +11,7 @@ import { parseMcpToolError } from "../../fixtures/mcpToolError.js";
 import { nugetNupkgFixture } from "../../../src/nuget/NugetNupkg.fixture.js";
 import { ZIP_ZSTANDARD_WINDOW_CEILING } from "../../../src/resources/ZipArtifactReader.js";
 import { createTestTempDirectory } from "../../fixtures/temporaryDirectory.js";
+import { expectParameterLimitRefusals } from "../../support/mcp/expectParameterLimitRefusals.js";
 import { mcpTest, type TestMcp } from "../../support/mcp/mcpFixture.js";
 
 const nupkgContract = contractNamed(
@@ -141,6 +142,53 @@ mcpTest(
       expect(error.message).toMatch(/Zstandard dictionary/u);
     } finally {
       enumeration.mockRestore();
+      await session.close();
+    }
+  },
+);
+
+mcpTest(
+  "names the per-call budget that stopped NuGet inspection as a structured limit",
+  async ({ mcp }) => {
+    const { client, session } = await connect(mcp);
+    try {
+      const root = await createTestTempDirectory("rea-nupkg-mcp-limits-");
+      const path = join(root, "Demo.Package.nupkg");
+      await writeFile(path, await nugetNupkgFixture());
+      // Expected ranges are the published schema bounds, written out literally.
+      const expected = {
+        max_file_bytes: {
+          resource: "file-size",
+          value: 16,
+          minimum: 16,
+          maximum: 536870912,
+          default_value: 67108864,
+          unit: "bytes",
+        },
+        max_entries: {
+          resource: "capacity",
+          value: 1,
+          minimum: 1,
+          maximum: 65536,
+          default_value: 4096,
+          unit: "count",
+        },
+        max_nuspec_bytes: {
+          resource: "memory",
+          value: 1,
+          minimum: 1,
+          maximum: 16777216,
+          default_value: 1048576,
+          unit: "bytes",
+        },
+      } as const;
+      await expectParameterLimitRefusals(
+        client,
+        "inspect_nuget_nupkg",
+        path,
+        expected,
+      );
+    } finally {
       await session.close();
     }
   },

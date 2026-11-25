@@ -15,19 +15,44 @@ import type { DevicetreePort } from "../../ports/binaryDiagnostics/DevicetreePor
 import type { ExecutionOptions } from "../../ports/AnalysisProvider.js";
 import { AnalysisResourceConstraintError } from "../../domain/analysisErrorCore.js";
 import {
-  MAX_DEVICETREE_FILE_BYTES,
+  DEVICETREE_READ_BUDGETS,
+  devicetreeBudgetLimit,
+  type DevicetreeReadBudget,
   type InspectDevicetreeInput,
 } from "../../domain/firmware/devicetree.js";
 import { err, ok } from "../../domain/result.js";
 import { DEVICETREE_PROVIDER } from "../../domain/investigationProviders.js";
 import {
+  DEVICETREE_DECODED_ALLOWANCE,
+  DEVICETREE_DECODED_BYTES,
   DEVICETREE_FORMAT,
   parseDevicetree,
 } from "../../domain/firmware/devicetreeParser.js";
+import { fixedAllowanceOptions } from "../../domain/fixedAllowanceRemediation.js";
 import { classifyProviderFailure } from "../../providers/classifyProviderFailure.js";
 import { offlineArtifactFailureDialect } from "../../providers/offlineArtifactFailure.js";
 
 const OPERATION = "inspect_devicetree";
+
+const isReadBudget = (name: string): name is DevicetreeReadBudget =>
+  Object.hasOwn(DEVICETREE_READ_BUDGETS, name);
+
+/** The caller-selected budget that stopped inspection, as structured limit and prose. */
+const budgetRefusal = (
+  parameter: DevicetreeReadBudget,
+  input: InspectDevicetreeInput,
+) => {
+  const selected = input[parameter];
+  const { maximum } = DEVICETREE_READ_BUDGETS[parameter];
+  return {
+    retryable: false as const,
+    limit: devicetreeBudgetLimit(parameter, selected),
+    remediationAction:
+      selected < maximum
+        ? `Raise ${parameter} above ${String(selected)}, up to ${String(maximum)}, on the next call, or select a smaller DTB.`
+        : `${parameter} is at this operation's maximum of ${String(maximum)}; select a smaller DTB.`,
+  };
+};
 
 /** Portable parser over one bounded, identity-checked regular file. */
 export class DevicetreeProvider implements DevicetreePort {
@@ -91,15 +116,29 @@ const devicetreeFailure = (
         description: "devicetree blob",
         fallbackMessage: "devicetree inspection failed.",
         recognise: (failure, origin) => {
-          if (isParseLimit(failure, DEVICETREE_FORMAT))
-            return parseLimitConstraint(
-              OPERATION,
-              failure.failure.limit.name === "decoded_bytes"
-                ? "memory"
-                : "capacity",
-              failure,
-              { retryable: false, remediationAction: failure.failure.detail },
-            );
+          if (isParseLimit(failure, DEVICETREE_FORMAT)) {
+            const { name } = failure.failure.limit;
+            return isReadBudget(name)
+              ? parseLimitConstraint(
+                  OPERATION,
+                  "capacity",
+                  failure,
+                  budgetRefusal(name, input),
+                )
+              : parseLimitConstraint(
+                  OPERATION,
+                  "memory",
+                  failure,
+                  fixedAllowanceOptions(
+                    DEVICETREE_DECODED_ALLOWANCE,
+                    "parser",
+                    {
+                      limit: DEVICETREE_DECODED_BYTES,
+                      unit: "bytes",
+                    },
+                  ),
+                );
+          }
           if (
             origin === "owned-or-classified" &&
             failure instanceof ArtifactReaderFailure &&
@@ -110,14 +149,7 @@ const devicetreeFailure = (
               failure.boundary ?? "memory",
               failure.message,
               { max_file_bytes: input.max_file_bytes },
-              {
-                cause: failure,
-                retryable: false,
-                remediationAction:
-                  input.max_file_bytes < MAX_DEVICETREE_FILE_BYTES
-                    ? "Raise max_file_bytes within its schema ceiling or select a smaller DTB."
-                    : "Select a smaller DTB; the fixed file-byte ceiling has been reached.",
-              },
+              { cause: failure, ...budgetRefusal("max_file_bytes", input) },
             );
           return undefined;
         },

@@ -11,6 +11,9 @@ import { decodeLimit, type ParseFailureError } from "../parseFailure.js";
 export const DEVICETREE_FORMAT = "devicetree";
 
 export const DEVICETREE_DECODED_BYTES = 33554432;
+/** The fixed decoded-representation ceiling `DEVICETREE_DECODED_BYTES` enforces. */
+export const DEVICETREE_DECODED_ALLOWANCE =
+  "The devicetree decoded representation allowance";
 
 export type DevicetreeLimit =
   | keyof Omit<InspectDevicetreeInput, "path">

@@ -101,6 +101,13 @@ accepts `max_native_index_bytes` (default 1 GiB) for the estimated ELF pointer
 index of `binary_path`; its refusal reports the same kind of limit. See
 [IL2CPP metadata](../il2cpp-metadata.md#native-method-addresses).
 
+`inspect_devicetree`, `inspect_nuget_nupkg` and `inspect_python_pyc` report
+`details.limit` for each of their per-call budgets (`max_file_bytes` and the
+node, property, entry, object, depth and string-byte counts each accepts). When
+a pyc limit is the product of two budgets (`max_objects` and `max_depth`), the
+refusal lists them in `details.related_parameters` instead. The fixed 32 MiB
+decoded devicetree allowance is a `fixed_ceiling` refusal.
+
 ### Static reader read allowance
 
 `inspect_pe_imports`, `inspect_pe_resources`, `inspect_pe_load_config`,

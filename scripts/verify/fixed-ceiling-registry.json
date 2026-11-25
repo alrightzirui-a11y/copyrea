@@ -254,6 +254,13 @@
       "reason": "The BEAM table row ceiling is a resource policy."
     }
   },
+  "src/firmware/devicetree/DevicetreeProvider.ts": {
+    "DEVICETREE_DECODED_ALLOWANCE": {
+      "class": "pending",
+      "issue": 14236,
+      "reason": "The 32 MiB decoded devicetree representation allowance is a resource policy without a per-call control."
+    }
+  },
   "src/flutter/FlutterBuildProvider.ts": {
     "\"The Flutter ABI inventory allowance\"": {
       "class": "pending",
